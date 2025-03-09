@@ -94,6 +94,7 @@
       grid-template-columns: 250px 1fr;
       gap: 20px;
     }
+    /* تحسين استجابة التخطيط */
     @media (max-width: 768px) {
       .dashboard {
         grid-template-columns: 1fr;
@@ -178,6 +179,11 @@
       gap: 20px;
       margin-bottom: 30px;
     }
+    @media (max-width: 576px) {
+      .summary-cards {
+        grid-template-columns: 1fr;
+      }
+    }
     .card {
       background-color: white;
       border-radius: 10px;
@@ -221,6 +227,7 @@
       text-align: right;
       border-bottom: 1px solid #ddd;
       transition: background-color var(--transition-speed);
+      font-size: 14px;
     }
     th {
       background-color: #f8f9fa;
@@ -241,7 +248,7 @@
       font-size: 12px;
       background-color: #f0f0f0;
     }
-    /* أزرار التعديل والحذف */
+    /* أزرار الإجراءات */
     .action-btn {
       border: none;
       padding: 5px 10px;
@@ -333,13 +340,17 @@
     .btn-cancel:hover {
       background-color: #e9ecef;
     }
-    @media (max-width: 768px) {
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-      .summary-cards {
-        grid-template-columns: 1fr;
-      }
+    /* تحسين الاستجابة للهواتف */
+    @media (max-width: 576px) {
+      header { padding: 15px 0; }
+      .logo { font-size: 22px; }
+      .user-info { gap: 8px; }
+      .logout-btn, .dark-mode-btn { font-size: 16px; }
+      .sidebar { padding: 15px; }
+      .nav-item { padding: 10px 12px; font-size: 14px; }
+      .main-content { padding: 15px; }
+      th, td { padding: 10px 12px; font-size: 12px; }
+      .search-container input { max-width: 100%; }
     }
   </style>
 </head>
@@ -424,7 +435,7 @@
       </div>
     </div>
     
-    <!-- بانر إضافة معاملة (يظهر عند عدم وجود معاملات) -->
+    <!-- بانر إضافة معاملة (إذا لم توجد معاملات) -->
     <div id="addTransactionBanner" class="add-transaction-banner" style="display:none;">
       <h2>أضف معاملتك الآن</h2>
       <button id="bannerAddBtn">إضافة معاملة</button>
@@ -539,7 +550,7 @@
         <!-- صفحة التقارير -->
         <div id="reportsPage" class="page">
           <h2>التقارير</h2>
-          <p>يمكنك عرض تحليلات مفصلة لمصاريفك ودخلك باستخدام الرسوم البيانية والتقارير التفاعلية.</p>
+          <p>عرض تحليلات مفصلة لمصاريفك ودخلك باستخدام الرسوم البيانية والتقارير التفاعلية.</p>
           <div class="search-container">
             <input type="text" id="reportSearchInput" placeholder="ابحث في التقارير...">
           </div>
@@ -602,21 +613,18 @@
   </div>
   
   <script>
-    // أسعار صرف ثابتة لتحويل العملات (يمكن تحديثها لاحقاً)
+    // أسعار صرف ثابتة لتحويل العملات (يمكن ربطها بواجهة API لاحقاً)
     const conversionRates = {
       SAR: 1,
       USD: 3.75,
       EUR: 4.0,
       GBP: 4.5
     };
-    
-    // دالة تحويل المبلغ إلى العملة الافتراضية
     function convertToDefault(amount, currency) {
       const defaultCurrency = localStorage.getItem('defaultCurrency') || 'SAR';
       return amount * (conversionRates[currency] || 1) / (conversionRates[defaultCurrency] || 1);
     }
     
-    // مصفوفة لتخزين المعاملات وكائن لتخزين الميزانيات
     let transactions = [];
     let budgets = {};
     
@@ -636,7 +644,7 @@
       localStorage.setItem('budgets', JSON.stringify(budgets));
     }
     
-    // تحديث الملخصات مع تحويل العملات
+    // تحديث الملخصات
     function updateDashboard() {
       let income = 0, expense = 0;
       transactions.forEach(tx => {
@@ -651,7 +659,7 @@
       document.getElementById('balanceValue').textContent = balance.toFixed(2) + " " + defaultCurrency;
     }
     
-    // تحديث جدول المعاملات
+    // تحديث جداول المعاملات
     function updateTransactionsTable() {
       const tableBody = document.getElementById('transactionTableBody');
       const tableBody2 = document.getElementById('transactionTableBody2');
@@ -678,10 +686,9 @@
       }
     }
     
-    // تحديث الرسوم البيانية باستخدام Chart.js (مع تحويل العملات)
+    // تحديث الرسوم البيانية
     let expenseChart, incomeExpenseChart;
     function updateCharts() {
-      // تحديث مصروفات حسب الفئة
       const categoryTotals = {};
       transactions.forEach(tx => {
         if(tx.type === 'expense') {
@@ -711,7 +718,6 @@
         });
       }
       
-      // تحديث الدخل والمصروفات شهرياً
       const monthNames = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
       const monthlyIncome = Array(12).fill(0);
       const monthlyExpense = Array(12).fill(0);
@@ -742,7 +748,7 @@
       }
     }
     
-    // تحديث بانر "أضف معاملتك" عند عدم وجود معاملات
+    // تحديث بانر "أضف معاملتك"
     function updateAddTransactionBanner() {
       const banner = document.getElementById('addTransactionBanner');
       banner.style.display = transactions.length === 0 ? 'block' : 'none';
@@ -768,7 +774,7 @@
       summary.innerHTML = html;
     }
     
-    // تحديث الواجهة العامة
+    // تحديث الواجهة بالكامل
     function updateUI() {
       updateDashboard();
       updateTransactionsTable();
